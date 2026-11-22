@@ -12,7 +12,7 @@ import sys, json, datetime as dt
 import numpy as np, pandas as pd, yfinance as yf
 from zoneinfo import ZoneInfo
 
-VER = "v261123c"
+VER = "v261123d"
 TARGET_VOL, SMA_WEEKS, VOL_DAYS = 0.30, 30, 20
 STOP, RISK = 0.075, 0.015
 
@@ -82,6 +82,9 @@ for t, r in res.items():
         r["비중한도%"] = min(mkt, r["다이얼%"]) if t != "QQQ" else mkt
         if t in pos and pos[t].get("entry"):
             e = float(pos[t]["entry"])
+            if pos[t].get("weight") is not None:
+                cur = float(pos[t]["weight"]); tgt = round(cur * r["비중한도%"] / 100)
+                r["배분"] = {"지금%": cur, "모델%": tgt, "차이%p": round(tgt - cur)}
             if pos[t].get("kind") == "장기":
                 # 장기 보유분: 손절 없음, 다이얼과 진입 대비 %만 (Mr.Red 261123, 0절 44번 ③)
                 r["병조"] = {"구분": "장기", "진입가": e, "진입대비%": round((r["종가"] / e - 1) * 100, 1)}
@@ -97,6 +100,9 @@ print(json.dumps(out, ensure_ascii=False, indent=1))
 parts = [f"{t} {r['다이얼%']}%" for t, r in res.items() if "다이얼%" in r]
 stops = [t for t, r in res.items() if r.get("병조", {}).get("손절_닿음")]
 line = "다이얼 " + " · ".join(parts) + f" ({last_bar} 종가" + (", 추세 갱신" if is_fri_close else "") + ")"
+alloc = [f"{t} {r['배분']['모델%']}%(지금 {r['배분']['지금%']:.0f}%)" for t, r in res.items() if "배분" in r]
+if alloc:
+    line += " · 모델 비중 " + ", ".join(alloc) + " [참고]"
 if stops:
     line += " · 손절가 닿음: " + ", ".join(stops)
 miss = [t for t, r in res.items() if "오류" in r]
