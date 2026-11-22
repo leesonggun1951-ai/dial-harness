@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>노출 다이얼 하네스 · 매일 보기</title>
+<style>
+  :root { --ink:#1d2433; --sub:#5b6474; --line:#e3e6ec; --bg:#f6f7f9; --card:#fff;
+          --c1:#8a94a6; --c2:#d9822b; --c3:#2b8a6e; --c4:#2f6fd6; --dn:#c2412d; --up:#1f8a4c; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:16px 14px 40px; }
+  h1 { font-size:20px; margin:4px 0 2px; }
+  .meta { color:var(--sub); font-size:13px; }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin:12px 0; }
+  .dial { font-weight:600; }
+  .btn { display:inline-block; margin-top:10px; padding:9px 14px; border-radius:8px; background:var(--ink); color:#fff; text-decoration:none; font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px; }
+  .card { background:var(--card); border:1px solid var(--line); border-left:5px solid; border-radius:10px; padding:12px; }
+  .card h3 { margin:0 0 6px; font-size:15px; }
+  .big { font-size:24px; font-weight:700; }
+  .row { display:flex; justify-content:space-between; font-size:13.5px; padding:2px 0; border-bottom:1px dashed var(--line); }
+  .row:last-child { border-bottom:0; }
+  .act { margin-top:8px; font-size:13.5px; background:#f3f5f8; border-radius:6px; padding:7px 9px; }
+  .neg { color:var(--dn); } .pos { color:var(--up); }
+  h2 { font-size:16px; margin:22px 0 6px; }
+  svg { width:100%; height:auto; display:block; }
+  .legend span { display:inline-flex; align-items:center; margin:2px 12px 2px 0; font-size:13px; }
+  .legend i { width:14px; height:4px; border-radius:2px; margin-right:6px; display:inline-block; }
+  details { background:var(--card); border:1px solid var(--line); border-radius:10px; margin:8px 0; padding:10px 12px; }
+  summary { cursor:pointer; font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  td { padding:5px 4px; border-top:1px solid var(--line); vertical-align:top; }
+  td:first-child { white-space:nowrap; color:var(--sub); width:88px; }
+  .note { color:var(--sub); font-size:12.5px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>노출 다이얼 하네스 · 매일 보기</h1>
+  <div class="meta" id="meta">불러오는 중…</div>
+
+  <div class="box">
+    <div class="meta">오늘 다이얼</div>
+    <div class="dial" id="dial">-</div>
+    <a class="btn" href="https://docs.google.com/document/d/17fKP5acx3I4S486cu6Aqae8kWsiW1utFsbMsIcBKWYg/edit" target="_blank" rel="noopener">세이브티커 일일 메모 열기</a>
+  </div>
+
+  <h2>1~4번 방식 오늘 상태</h2>
+  <div class="grid" id="cards"></div>
+
+  <h2>누적 수익률 추세</h2>
+  <div class="box">
+    <div class="legend" id="legend"></div>
+    <div id="chart"></div>
+  </div>
+
+  <h2>방식별 가상 액션 기록 (최신이 위)</h2>
+  <div id="logs"></div>
+
+  <p class="note" id="foot"></p>
+</main>
+<script>
+const COLORS = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"];
+const pct = (v, d=1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
+const cls = v => v < 0 ? "neg" : (v > 0 ? "pos" : "");
+fetch("data.json?t=" + Date.now()).then(r => r.json()).then(s => {
+  document.getElementById("meta").textContent =
+    `기준 ${s["기준일"]} · 마지막 종가 ${s["마지막_종가일"]} · 갱신 ${s["갱신"] || "-"} · 배분 ` +
+    Object.entries(s["배분%"]).map(([t, v]) => `${t} ${v}%`).join(" · ");
+  document.getElementById("dial").textContent = s["다이얼줄"] || "-";
+
+  const cards = document.getElementById("cards");
+  s["방식"].forEach((m, i) => {
+    const o = m["오늘"];
+    const ex = Object.entries(o["노출%"]).map(([t, v]) => `${t} ${v}%`).join(" · ") + ` · 현금 ${o["현금%"]}%`;
+    cards.insertAdjacentHTML("beforeend", `
+      <div class="card" style="border-left-color:${COLORS[i]}">
+        <h3>${i + 1}) ${m["이름"]}</h3>
+        <div class="big ${cls(o["누적%"])}">${pct(o["누적%"])}</div>
+        <div class="row"><span>최대 낙폭</span><span class="neg">${pct(o["최대낙폭%"])}</span></div>
+        <div class="row"><span>고점 대비 지금</span><span class="${cls(o["고점대비%"])}">${pct(o["고점대비%"])}</span></div>
+        <div class="row"><span>오늘 노출</span><span>${ex}</span></div>
+        <div class="act"><b>오늘의 가상 액션</b><br>${o["오늘_액션"]}</div>
+      </div>`);
+  });
+
+  // 그래프
+  const W = Math.max(340, document.getElementById("chart").clientWidth || 340), H = Math.round(W * 0.62), L = 40, R = 8, T = 10, B = 26;
+  const n = s["날짜"].length;
+  const all = s["방식"].flatMap(m => m["누적%"]);
+  let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
+  const pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+  const x = i => L + (W - L - R) * i / Math.max(1, n - 1);
+  const y = v => T + (H - T - B) * (hi - v) / (hi - lo);
+  let g = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  const step = (hi - lo) > 60 ? 20 : 10;
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
+    g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="${v === 0 ? '#9aa3b2' : '#e3e6ec'}" stroke-width="${v === 0 ? 1.2 : 1}"/>`;
+    g += `<text x="${L - 6}" y="${y(v) + 4}" font-size="11" text-anchor="end" fill="#5b6474">${v}%</text>`;
+  }
+  let lastM = "";
+  s["날짜"].forEach((d, i) => {
+    const mo = d.slice(5, 7);
+    if (mo !== lastM) { lastM = mo;
+      g += `<text x="${x(i)}" y="${H - 10}" font-size="11" text-anchor="middle" fill="#5b6474">${+mo}월</text>`; }
+  });
+  // 1·2번, 3·4번은 털기 전까지 같은 길을 가므로 2·4번(실선)을 먼저, 1·3번(점선)을 위에 그린다
+  [1, 3, 0, 2].forEach(k => { const m = s["방식"][k];
+    const pts = m["누적%"].map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+    const dash = (k === 0 || k === 2) ? ' stroke-dasharray="5 4"' : '';
+    g += `<polyline fill="none" stroke="${COLORS[k]}" stroke-width="${k === 3 ? 2.6 : 2}"${dash} points="${pts}"/>`;
+  });
+  g += "</svg>";
+  document.getElementById("chart").innerHTML = g;
+  document.getElementById("legend").innerHTML = s["방식"].map((m, k) =>
+    `<span><i style="background:${COLORS[k]}${(k === 0 || k === 2) ? ";opacity:.55" : ""}"></i>${k + 1}) ${m["이름"]}${(k === 0 || k === 2) ? " (점선)" : ""}</span>`).join("");
+
+  // 액션 기록
+  document.getElementById("logs").innerHTML = s["방식"].map((m, k) => {
+    const start = Object.entries(m["시작_노출%"]).map(([t, v]) => `${t} ${v}%`).join(" · ");
+    const rows = m["액션"].length
+      ? m["액션"].map(a => `<tr><td>${a["날짜"]}</td><td>${a["내용"]}</td></tr>`).join("")
+      : `<tr><td>-</td><td>바꾼 적 없음</td></tr>`;
+    return `<details ${k === 3 ? "open" : ""}><summary style="color:${COLORS[k]}">${k + 1}) ${m["이름"]} · ${m["액션"].length}번</summary>
+      <table>${rows}<tr><td>${s["기준일"]}</td><td>시작 노출: ${start}</td></tr></table></details>`;
+  }).join("");
+
+  document.getElementById("foot").textContent =
+    `계산: ${s["기준일"]} 종가에서 출발, 배분 비율을 매일 다시 맞춘다고 가정, 노출 변화마다 비용 0.1%. ` +
+    `신호는 그날 종가로 정하고 다음 거래일부터 적용. 가상 액션은 노출이 5%p 이상 바뀐 날만 적음. ` +
+    `모델 기준 가상 기록이며 매매 권유가 아니다. 매일 한국 07:00(화~토) 깃허브가 자동으로 고친다.`;
+}).catch(e => { document.getElementById("meta").textContent = "자료를 못 읽음: " + e; });
+</script>
+</body>
+</html>
