@@ -45,4 +45,11 @@ q = subprocess.run([sys.executable, "paper.py"], capture_output=True, text=True)
 pl = next((l for l in q.stdout.splitlines() if l.startswith("장부: ")), None)
 data["장부"] = pl or "장부: 계산 실패"
 json.dump(data, open("dial.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+# 페이지 자료에 오늘 다이얼 줄과 갱신 시각을 붙인다
+import datetime as _dt
+if os.path.exists("docs/data.json"):
+    s = json.load(open("docs/data.json", encoding="utf-8"))
+    s["다이얼줄"] = data.get("알림줄", "")
+    s["갱신"] = _dt.datetime.now(_dt.timezone(_dt.timedelta(hours=9))).strftime("%Y-%m-%d %H:%M (한국)")
+    json.dump(s, open("docs/data.json", "w", encoding="utf-8"), ensure_ascii=False)
 print(data["알림줄"]); print(data["장부"])
