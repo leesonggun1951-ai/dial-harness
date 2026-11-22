@@ -12,7 +12,7 @@ import sys, json, datetime as dt
 import numpy as np, pandas as pd, yfinance as yf
 from zoneinfo import ZoneInfo
 
-VER = "v261123b"
+VER = "v261123c"
 TARGET_VOL, SMA_WEEKS, VOL_DAYS = 0.30, 30, 20
 STOP, RISK = 0.075, 0.015
 
@@ -81,9 +81,14 @@ for t, r in res.items():
     if "다이얼%" in r:
         r["비중한도%"] = min(mkt, r["다이얼%"]) if t != "QQQ" else mkt
         if t in pos and pos[t].get("entry"):
-            e = float(pos[t]["entry"]); sl = round(e * (1 - STOP), 2)
-            r["병조"] = {"진입가": e, "손절가": sl, "손절_닿음": r["종가"] <= sl,
-                        "최대비중%": round(RISK / STOP * 100), "진입대비%": round((r["종가"] / e - 1) * 100, 1)}
+            e = float(pos[t]["entry"])
+            if pos[t].get("kind") == "장기":
+                # 장기 보유분: 손절 없음, 다이얼과 진입 대비 %만 (Mr.Red 261123, 0절 44번 ③)
+                r["병조"] = {"구분": "장기", "진입가": e, "진입대비%": round((r["종가"] / e - 1) * 100, 1)}
+            else:
+                sl = round(e * (1 - STOP), 2)
+                r["병조"] = {"구분": "공격", "진입가": e, "손절가": sl, "손절_닿음": r["종가"] <= sl,
+                            "최대비중%": round(RISK / STOP * 100), "진입대비%": round((r["종가"] / e - 1) * 100, 1)}
 
 is_fri_close = pd.Timestamp(last_bar).weekday() == 4
 out = {"버전": VER, "상태": "계산", "마지막_봉": str(last_bar), "금요일_종가_반영": is_fri_close,
