@@ -41,5 +41,8 @@ if data.get("상태") == "계산":
                         r["다이얼%"], r["비중한도%"], r.get("병조", {}).get("손절_닿음", "")])
     if cuts:
         data["알림줄"] += " · 줄임 신호: " + ", ".join(cuts)
+q = subprocess.run([sys.executable, "paper.py"], capture_output=True, text=True)
+pl = next((l for l in q.stdout.splitlines() if l.startswith("장부: ")), None)
+data["장부"] = pl or "장부: 계산 실패"
 json.dump(data, open("dial.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-print(data["알림줄"])
+print(data["알림줄"]); print(data["장부"])
