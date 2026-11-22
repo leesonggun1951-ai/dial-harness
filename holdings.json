@@ -1,4 +1,4 @@
 {
-  "MU": {"entry": 320, "date": null, "note": "평균 매수가, Mr.Red 261123"},
-  "SOXX": {"entry": 138, "date": null, "note": "평균 매수가, Mr.Red 261123"}
+  "MU": {"entry": 320, "date": null, "kind": "장기", "note": "평균 매수가, Mr.Red 261123"},
+  "SOXX": {"entry": 138, "date": null, "kind": "장기", "note": "평균 매수가, Mr.Red 261123"}
 }
