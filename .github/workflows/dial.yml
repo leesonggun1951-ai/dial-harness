@@ -1,0 +1,27 @@
+name: dial
+on:
+  schedule:
+    - cron: "0 22 * * 1-5"   # 한국 화~토 07:00 (미국장 마감 뒤)
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "휴장이어도 계산(시험)"
+        default: "0"
+permissions:
+  contents: write
+jobs:
+  dial:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install yfinance pandas numpy
+      - run: python run.py
+        env: { FORCE: "${{ github.event.inputs.force }}" }
+      - run: |
+          git config user.name "harness-bot"
+          git config user.email "harness-bot@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "다이얼 $(date -u +%F)"
+          git push
