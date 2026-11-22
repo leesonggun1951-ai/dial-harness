@@ -1,6 +1,6 @@
 # paper.py — 가상 장부 (Mr.Red 261123): 네 가지 노출 방식을 같은 날부터 나란히 돌려 비교한다.
 # 매번 시세로 처음부터 다시 계산한다(저장 상태 없음 → 하루 빠져도 틀어지지 않음).
-# 방식: 보유(항상 100%) · 올인/털기(추세만 0·100%) · 변동성만 · 추세×변동성(지금 다이얼)
+# 방식 이름은 줄이지 않고 다 쓴다(Mr.Red 261123).
 # 배분: holdings.json의 weight(주식 자금 중 비율). 남는 몫은 현금(수익 0).
 # 신호는 그날 종가로 정하고 다음 거래일부터 적용, 비중 변화 1회당 비용 0.1%.
 import json, numpy as np, pandas as pd, yfinance as yf
@@ -17,10 +17,10 @@ def weights(p):
     wk = p.resample("W-FRI").last(); sma = wk.rolling(30).mean()
     tr = (wk > sma).astype(float).reindex(p.index, method="ffill").fillna(0)
     vm = (0.30 / (r.rolling(20).std() * np.sqrt(252))).clip(upper=1).fillna(0)
-    return {"보유": pd.Series(1.0, index=p.index), "올인/털기": tr, "변동성만": vm, "추세×변동성": tr * vm}
+    return {"보유(지금 그대로, 항상 100%)": pd.Series(1.0, index=p.index), "올인/털기(추세만: 30주선 위 100%·아래 0%)": tr, "변동성만 조절(30%÷20일 변동성)": vm, "추세×변동성(지금 다이얼)": tr * vm}
 W = {t: weights(px[t]) for t in tick}
 out = {"시작": START, "기준일": str(px.index[-1].date()), "배분%": {t: alloc[t] * 100 for t in tick}, "방식": {}}
-for m in ["보유", "올인/털기", "변동성만", "추세×변동성"]:
+for m in ["보유(지금 그대로, 항상 100%)", "올인/털기(추세만: 30주선 위 100%·아래 0%)", "변동성만 조절(30%÷20일 변동성)", "추세×변동성(지금 다이얼)"]:
     wt = pd.DataFrame({t: W[t][m] * alloc[t] for t in tick})          # 포트폴리오 안 실제 노출
     r = px.pct_change().fillna(0)
     held = wt.shift(1).fillna(0)
