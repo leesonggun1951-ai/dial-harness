@@ -45,6 +45,7 @@
   .interp p { margin:6px 0 0; font-size:14px; }
   .interp p b { display:inline-block; min-width:112px; }
   .tog { margin:4px 0 0; padding:7px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:13px; cursor:pointer; }
+.fl{display:block;font-size:90%;margin:3px 0 0 4px;line-height:1.55}.ih{margin:10px 0 2px}.ih:first-child{margin-top:4px}#foot .fl{font-size:90%}
 </style>
 </head>
 <body>
@@ -80,6 +81,17 @@
   <p class="note" id="foot"></p>
 </main>
 <script>
+/* 해석 형식(Mr.Red 261124 「섹터다이얼 해석형식」, 조정 운영 체계 0절 46번):
+   내용이 바뀔 때마다 줄을 바꾸고 1) 2) 번호를 붙이며 글자는 본문보다 10% 작게 */
+function fmtLines(t, dots) {
+  const e = x => String(x).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+  let parts = String(t || "").split(/(?<=[.。])\s+(?=\S)/);
+  if (dots) parts = parts.flatMap(x => x.split(/\s·\s/));
+  parts = parts.map(x => x.trim()).filter(Boolean);
+  return parts.map((x, i) => `<span class="fl">${i + 1}) ${e(x)}</span>`).join("");
+}
+</script>
+<script>
 const COLORS = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"];
 const pct = (v, d=1) => (v > 0 ? "+" : "") + v.toFixed(d) + "%";
 const cls = v => v < 0 ? "neg" : (v > 0 ? "pos" : "");
@@ -96,9 +108,11 @@ fetch("data.json?t=" + Date.now()).then(r => r.json()).then(s => {
   document.getElementById("dial").textContent = s["다이얼줄"] || "-";
   const esc = t => String(t).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
   document.getElementById("interp").innerHTML = (s["해석"] || []).length
-    ? s["해석"].map(x => `<p><b>${esc(x["제목"])}</b> ${esc(x["글"])}</p>`).join("")
+    ? s["해석"].map(x => `<p class="ih"><b>${esc(x["제목"])}</b></p>` + fmtLines(x["글"])).join("")
     : "<p>내일 07:00 자동 실행부터 나온다.</p>";
-  document.getElementById("stop").textContent = s["경고등"] || "고장 경고등: 내일 07:00 자동 실행부터 나온다.";
+  (function(){ const t = s["경고등"] || "고장 경고등: 내일 07:00 자동 실행부터 나온다.";
+    const k = t.indexOf(":"); const head = k > 0 ? t.slice(0, k) : "고장 경고등"; const body = k > 0 ? t.slice(k + 1) : t;
+    document.getElementById("stop").innerHTML = `<b>${esc(head)}</b>` + fmtLines(body, true); })();
 
   const cards = document.getElementById("cards");
   ORDER.forEach(i => { const m = s["방식"][i];
@@ -156,10 +170,10 @@ fetch("data.json?t=" + Date.now()).then(r => r.json()).then(s => {
       <table>${rows}<tr><td>${s["기준일"]}</td><td>시작 노출: ${start}</td></tr></table></details>`;
   }).join("");
 
-  document.getElementById("foot").textContent =
-    `계산: ${s["기준일"]} 종가에서 출발, 배분 비율을 매일 다시 맞춘다고 가정, 노출 변화마다 비용 0.1%. ` +
+  document.getElementById("foot").innerHTML = "<b>계산</b>" + fmtLines(
+    `${s["기준일"]} 종가에서 출발, 배분 비율을 매일 다시 맞춘다고 가정, 노출 변화마다 비용 0.1%. ` +
     `신호는 그날 종가로 정하고 다음 거래일부터 적용. 가상 액션은 노출이 5%p 이상 바뀐 날만 적음. ` +
-    `모델 기준 가상 기록이며 매매 권유가 아니다. 매일 한국 07:00(화~토) 깃허브가 자동으로 고친다.`;
+    `모델 기준 가상 기록이며 매매 권유가 아니다. 매일 한국 07:00(화~토) 깃허브가 자동으로 고친다.`);
 }).catch(e => { document.getElementById("meta").textContent = "자료를 못 읽음: " + e; });
 </script>
 </body>
