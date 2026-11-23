@@ -42,6 +42,8 @@
   body.show13 .sub13 { display:block; }
   .legend span.sub13 { display:none; }
   body.show13 .legend span.sub13 { display:inline-flex; }
+  .interp p { margin:6px 0 0; font-size:14px; }
+  .interp p b { display:inline-block; min-width:112px; }
   .tog { margin:4px 0 0; padding:7px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:13px; cursor:pointer; }
 </style>
 </head>
@@ -53,6 +55,11 @@
   <div class="box">
     <div class="meta">오늘 다이얼</div>
     <div class="dial" id="dial">-</div>
+  </div>
+
+  <div class="box interp" id="interpBox">
+    <div class="meta">지금 상황 해석 (매일 숫자로 새로 씀 · 규칙 44번 ③-1)</div>
+    <div id="interp">-</div>
     <a class="btn" href="https://docs.google.com/document/d/17fKP5acx3I4S486cu6Aqae8kWsiW1utFsbMsIcBKWYg/edit" target="_blank" rel="noopener">세이브티커 일일 메모 열기</a>
   </div>
 
@@ -86,6 +93,10 @@ fetch("data.json?t=" + Date.now()).then(r => r.json()).then(s => {
     `기준 ${s["기준일"]} · 마지막 종가 ${s["마지막_종가일"]} · 갱신 ${s["갱신"] || "-"} · 배분 ` +
     Object.entries(s["배분%"]).map(([t, v]) => `${t} ${v}%`).join(" · ");
   document.getElementById("dial").textContent = s["다이얼줄"] || "-";
+  const esc = t => String(t).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  document.getElementById("interp").innerHTML = (s["해석"] || []).length
+    ? s["해석"].map(x => `<p><b>${esc(x["제목"])}</b> ${esc(x["글"])}</p>`).join("")
+    : "<p>내일 07:00 자동 실행부터 나온다.</p>";
 
   const cards = document.getElementById("cards");
   ORDER.forEach(i => { const m = s["방식"][i];

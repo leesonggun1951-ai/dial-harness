@@ -11,4 +11,5 @@
 
 - 이 저장소는 Mr.Red 규칙 문서(구글 드라이브 "4) ai/클로드 규칙/조정 운영 체계.md") **0절 44번 "투자 모델 = 노출 다이얼"(261123, 4주 시험)** 의 결과판이다. 규칙이 바뀌면 이 저장소의 계산(`dial_core.py`·`paper.py`)도 같이 고친다.
 - 매일 보기 페이지: https://leesonggun1951-ai.github.io/dial-harness/ (`docs/index.html` · 자동 작업은 `docs/data.json`만 새로 쓴다. 아이콘·머리말은 `docs/index.html`에서 직접 고친다)
+- 지금 상황 해석: `interp.py` → `docs/data.json`의 "해석"(매일 숫자로 네 줄을 새로 씀: 지금 상태·다시 열리는 조건·할 일·중단 규칙, 261124)
 - 가상 기록: `paper.py` → `paper.json`·`paper_history.csv` (2번 올인/털기, 4번 추세×변동성 등 방식별 비교)

@@ -50,6 +50,12 @@ import datetime as _dt
 if os.path.exists("docs/data.json"):
     s = json.load(open("docs/data.json", encoding="utf-8"))
     s["다이얼줄"] = data.get("알림줄", "")
+    # 지금 상황 해석(Mr.Red 261124): 그날 숫자로 네 줄을 새로 짓는다. 실패해도 나머지는 돈다.
+    try:
+        import interp
+        s["해석"] = interp.build(data, json.load(open("paper.json", encoding="utf-8")))
+    except Exception as e:
+        s["해석"] = [{"제목": "지금 상태", "글": f"해석을 만들지 못했다({type(e).__name__})."}]
     s["갱신"] = _dt.datetime.now(_dt.timezone(_dt.timedelta(hours=9))).strftime("%Y-%m-%d %H:%M (한국)")
     json.dump(s, open("docs/data.json", "w", encoding="utf-8"), ensure_ascii=False)
 print(data["알림줄"]); print(data["장부"])
