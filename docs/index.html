@@ -64,6 +64,7 @@
   </div>
 
   <h2>핵심: 2번·4번 오늘 상태</h2>
+  <div class="box interp" id="stopBox"><p id="stop">-</p></div>
   <button class="tog" id="tog">1·3번도 보기</button>
   <div class="grid" id="cards"></div>
 
@@ -97,6 +98,7 @@ fetch("data.json?t=" + Date.now()).then(r => r.json()).then(s => {
   document.getElementById("interp").innerHTML = (s["해석"] || []).length
     ? s["해석"].map(x => `<p><b>${esc(x["제목"])}</b> ${esc(x["글"])}</p>`).join("")
     : "<p>내일 07:00 자동 실행부터 나온다.</p>";
+  document.getElementById("stop").textContent = s["경고등"] || "고장 경고등: 내일 07:00 자동 실행부터 나온다.";
 
   const cards = document.getElementById("cards");
   ORDER.forEach(i => { const m = s["방식"][i];

@@ -52,14 +52,26 @@ def build(dial, paper):
         act = f"목표 비중이 지금보다 높다({more}). 늘림은 금요일 종가 뒤에만 하고, 주문은 Mr.Red가 한다."
     out.append({"제목": "할 일", "글": act})
 
-    # 4. 중단 규칙까지 남은 거리
-    st = []
-    for m, lim in ((M4, STOP[M4]), (M2, STOP[M2])):
-        dd = ps[m]["최대낙폭%"]
-        tag = "넘음 — 이 방식은 멈추고 다시 검토(③-1)" if dd <= lim else f"남은 거리 {dd - lim:.1f}%p"
-        st.append(f"{'4번' if m == M4 else '2번'} 최대 낙폭 {dd:+.1f}% / 기준 {lim:.0f}% ({tag})")
-    out.append({"제목": "중단 규칙", "글": " · ".join(st) + ". 매달 한 번 실제 성적을 백테스트와 견준다."})
     return out
+
+
+def stop_line(paper):
+    """2번·4번 카드 위에 두는 '고장 경고등' 한 문단(Mr.Red 261124: 쉬운 말로)."""
+    ps = paper.get("방식", {})
+    if M2 not in ps or M4 not in ps:
+        return "고장 경고등: 오늘 장부를 못 읽었다."
+    parts, broke = [], []
+    for m, name in ((M4, "4번"), (M2, "2번")):
+        dd, lim = ps[m]["최대낙폭%"], STOP[m]
+        if dd <= lim:
+            broke.append(name)
+            parts.append(f"{name}은 지금까지 최악 {dd:.1f}%로 과거 20년 최악({lim:.0f}%)을 넘었다")
+        else:
+            parts.append(f"{name}은 지금까지 최악 {dd:.1f}%, 과거 20년 최악({lim:.0f}%)까지 {dd - lim:.1f}%p 남음")
+    verdict = (f"→ {'·'.join(broke)}은 멈추고 다시 검토(규칙 ③-1)." if broke else "→ 둘 다 정상.")
+    return ("고장 경고등: " + " · ".join(parts) + f" {verdict} "
+            "과거 최악(2008 금융위기 포함)보다 더 깨지면 이 방식이 더는 안 통한다는 뜻이라 따르지 않고 멈춘다. "
+            "한 달에 한 번 실제 성적을 백테스트와 견준다.")
 
 
 if __name__ == "__main__":
@@ -67,3 +79,4 @@ if __name__ == "__main__":
     p = json.load(open("paper.json", encoding="utf-8"))
     for x in build(d, p):
         print(f"{x['제목']}: {x['글']}")
+    print(stop_line(p))
