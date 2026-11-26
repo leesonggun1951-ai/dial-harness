@@ -58,6 +58,11 @@
     <div class="dial" id="dial">-</div>
   </div>
 
+  <div class="box interp" id="opBox">
+    <div class="meta" id="opMeta">Claude 종합 의견 (의견이며 규칙이 아님 · 다이얼과 다르면 다이얼이 이긴다 · 규칙 48번)</div>
+    <div id="op">-</div>
+  </div>
+
   <div class="box interp" id="interpBox">
     <div class="meta">지금 상황 해석 (매일 숫자로 새로 씀 · 규칙 44번 ③-1)</div>
     <div id="interp">-</div>
@@ -101,6 +106,13 @@ document.getElementById("tog").onclick = () => {
   const on = document.body.classList.toggle("show13");
   document.getElementById("tog").textContent = on ? "1·3번 숨기기" : "1·3번도 보기";
 };
+fetch("opinion.json?t=" + Date.now()).then(r => r.ok ? r.json() : null).then(o => {
+  const el = document.getElementById("op");
+  if (!o || !(o["줄"] || []).length) { el.innerHTML = "<p>아직 의견이 없다. 아침 작업이 쓰면 여기에 나온다.</p>"; return; }
+  const e = t => String(t).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  document.getElementById("opMeta").textContent += ` · ${o["날짜"] || ""} ${o["회차"] || ""}`;
+  el.innerHTML = o["줄"].map(x => `<p>${e(x)}</p>`).join("");
+}).catch(() => { document.getElementById("op").innerHTML = "<p>의견을 불러오지 못했다.</p>"; });
 fetch("data.json?t=" + Date.now()).then(r => r.json()).then(s => {
   document.getElementById("meta").textContent =
     `기준 ${s["기준일"]} · 마지막 종가 ${s["마지막_종가일"]} · 갱신 ${s["갱신"] || "-"} · 배분 ` +
