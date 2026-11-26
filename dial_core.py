@@ -1,6 +1,6 @@
 # 다이얼 계산.py  v261123a  (조정 운영 체계 0절 44번, 평시서·병조 담당)
 # 쓰는 법: python3 "다이얼 계산.py" [추가 티커 ...] [--pos 보유.json] [--force]
-#   - 기본 대상: QQQ(시장), SOXX(반도체), MU. 추가 티커는 뒤에 적는다.
+#   - 기본 대상: QQQ(시장), SOXX(반도체). 추가 티커는 뒤에 적는다(261127 Mr.Red: 개별주 안 함, MU 뺌).
 #   - --pos: {"MU": {"entry": 600.0}} 형식(진입가). 있으면 병조가 손절가·닿음을 본다.
 #   - --force: 미국 휴장일이어도 계산한다(시험용).
 # 출력: 맨 끝에 JSON 한 덩어리 + "알림줄:" 한 줄. 아침 작업은 알림줄을 그대로 쓴다(고쳐 쓰지 않는다 = 훅).
@@ -24,7 +24,7 @@ if "--pos" in args:
     pos = json.load(open(p, encoding="utf-8"))
     args = [a for a in args if a not in ("--pos", p)]
 args = [a for a in args if a != "--force"]
-tickers = ["QQQ", "SOXX", "MU"] + [t.upper() for t in args if t.upper() not in ("QQQ", "SOXX", "MU")]
+tickers = ["QQQ", "SOXX"] + [t.upper() for t in args if t.upper() not in ("QQQ", "SOXX")]
 tickers += [t for t in pos if t not in tickers]
 
 raw = yf.download(tickers, period="2y", auto_adjust=True, progress=False)["Close"]
